@@ -422,12 +422,12 @@ class PhpWsdlClient{
 		if(is_null($wsdl)){
 			$wsdl=$this->FetchWsdl();
 			if($wsdl===false)
-				throw(new Exception('Could not fetch WSDL'));
+				throw(new \Exception('Could not fetch WSDL'));
 			$writeCache=true;
 		}
 		$xml=new DOMDocument();
 		if(!$xml->loadXML($wsdl))
-			throw(new Exception('Invalid WSDL'));
+			throw(new \Exception('Invalid WSDL'));
 		$x=new DOMXPath($xml);
 		// Namespace
 		$temp=$x->query("/*[local-name()='definitions']/@targetNamespace");

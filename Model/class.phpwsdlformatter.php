@@ -1,4 +1,5 @@
 <?php
+use Wan24\PhpWsdlBundle\PhpWsdl;
 if(basename($_SERVER['SCRIPT_FILENAME'])==basename(__FILE__))
 	exit;
 /**
@@ -231,7 +232,7 @@ class PhpWsdlFormatter
 	{
 		while ($this->_buffer = fread($this->_input, $this->_options["bufferSize"])) {
 			if (!xml_parse($this->_parser, $this->_buffer, feof($this->_input))) {
-				throw new Exception(sprintf("XML error: %s at line %d",
+				throw new \Exception(sprintf("XML error: %s at line %d",
                     xml_error_string(xml_get_error_code($this->_parser)),
                     xml_get_current_line_number($this->_parser)));
 					return;
