@@ -1,5 +1,5 @@
 <?php
-
+use Wan24\PhpWsdlBundle\PhpWsdl;
 /*
 PhpWsdl - Generate WSDL from PHP
 Copyright (C) 2011  Andreas M�ller-Saala, wan24.de 
@@ -17,8 +17,7 @@ You should have received a copy of the GNU General Public License along with
 this program; if not, see <http://www.gnu.org/licenses/>.
 */
 
-if(basename($_SERVER['SCRIPT_FILENAME'])==basename(__FILE__))
-	exit;
+
 
 PhpWsdl::RegisterHook('InterpretKeywordpw_enumHook','internal','PhpWsdlEnum::InterpretEnum');
 PhpWsdl::RegisterHook('CreateObjectHook','internalenum','PhpWsdlEnum::CreateEnumTypeObject');
@@ -26,7 +25,7 @@ PhpWsdl::RegisterHook('CreateObjectHook','internalenum','PhpWsdlEnum::CreateEnum
 /**
  * This class creates enumerations
  * 
- * @author Andreas M�ller-Saala, wan24.de
+ * @author Andreas Müller-Saala, wan24.de
  */
 class PhpWsdlEnum extends PhpWsdlObject{
 	/**
@@ -61,11 +60,11 @@ class PhpWsdlEnum extends PhpWsdlObject{
 	 * @param array $el Optional a list of elements
 	 * @param array $settings Optional the settings hash array (default: NULL)
 	 */
-	public function PhpWsdlEnum($name,$type,$el=Array(),$settings=null){
+	public function __construct($name,$type,$el=Array(),$settings=null){
 		PhpWsdl::Debug('New enumeration type '.$name.' of '.$type);
 		if($type=='boolean')
 			throw(new Exception('Boolean enumeration type is not valid'));
-		parent::PhpWsdlObject($name,$settings);
+		parent::__construct($name,$settings);
 		$this->Type=$type;
 		$this->Elements=$el;
 	}
