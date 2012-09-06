@@ -1,5 +1,6 @@
 <?php
 namespace Wan24\PhpWsdlBundle;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /*
 PhpWsdl - Generate WSDL from PHP
@@ -51,6 +52,13 @@ PhpWsdl::PostInit();
  * @version 2.3
  */
 class PhpWsdl{
+    /**
+     * The container from the calling controller
+     * 
+     * $var ContainerInterface
+     */
+    protected $container;
+    
 	/**
 	 * The version number 
 	 * 
@@ -393,6 +401,7 @@ class PhpWsdl{
 	 * Note: The quick mode by giving TRUE as first parameter is deprecated and will be removed from version 3.0.
 	 * Use PhpWsdl::RunQuickMode() instead
 	 * 
+         * @param object|Container $container
 	 * @param string|boolean $nameSpace Namespace or NULL to let PhpWsdl determine it, or TRUE to run everything by determining all configuration -> quick mode (default: NULL)
 	 * @param string|string[] $endPoint Endpoint URI or NULL to let PhpWsdl determine it - or, in quick mode, the webservice class filename(s) (default: NULL)
 	 * @param string $cacheFolder The folder for caching WSDL or NULL to use the systems default (default: NULL)
@@ -403,7 +412,8 @@ class PhpWsdl{
 	 * @param boolean $outputOnRequest Output WSDL on request? (default: FALSE)
 	 * @param boolean|string|object|array $runServer Run SOAP server? (default: FALSE)
 	 */
-	public function __construct(
+	public function __construct(ContainerInterface
+                $container,
 		$nameSpace=null,
 		$endPoint=null,
 		$cacheFolder=null,
@@ -412,8 +422,11 @@ class PhpWsdl{
 		$methods=null,
 		$types=null,
 		$outputOnRequest=false,
-		$runServer=false
+		$runServer=false                
 		){
+            
+                $this->container = $container;
+                
 		// Quick mode
 		self::Debug('PhpWsdl constructor called');
 		$quickRun=false;
@@ -732,14 +745,15 @@ class PhpWsdl{
 	 * Determine the endpoint URI
 	 */
 	public function DetermineEndPoint(){
-		return ((isset($_SERVER['HTTPS'])&&$_SERVER['HTTPS']=='on')?'https':'http').'://'.$_SERVER['SERVER_NAME'].$_SERVER['SCRIPT_NAME'];
+            $request = $this->container->get('request');            
+            return ((isset($_SERVER['HTTPS'])&&$_SERVER['HTTPS']=='on')?'https':'http').'://'.$_SERVER['SERVER_NAME']. ( $request->server->get('SERVER_PORT')!= '443'?  ':' . $request->server->get('SERVER_PORT') : '') .$_SERVER['PHP_SELF'];
 	}
 
 	/**
 	 * Determine the namespace
 	 */
 	public function DetermineNameSpace(){
-		return 'http://'.$_SERVER['SERVER_NAME'].str_replace(basename($_SERVER['SCRIPT_NAME']),'',$_SERVER['SCRIPT_NAME']);
+		return 'http://'.$_SERVER['SERVER_NAME'].str_replace(basename($_SERVER['SCRIPT_NAME']),'',$_SERVER['PHP_SELF']);
 	}
 	
 	/**
