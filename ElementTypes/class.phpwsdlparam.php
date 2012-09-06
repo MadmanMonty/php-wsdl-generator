@@ -56,9 +56,9 @@ class PhpWsdlParam extends PhpWsdlObject{
 	 * @param string $type Optional the type name (default: string)
 	 * @param array $settings Optional the settings hash array (default: NULL)
 	 */
-	public function PhpWsdlParam($name,$type='string',$settings=null){
+	public function __construct($name,$type='string',$settings=null){
 		PhpWsdl::Debug('New parameter '.$name);
-		parent::PhpWsdlObject($name,$settings);
+		parent::__construct($name,$settings);
 		$this->Type=$type;
 	}
 	

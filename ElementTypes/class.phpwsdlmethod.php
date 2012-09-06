@@ -64,9 +64,9 @@ class PhpWsdlMethod extends PhpWsdlObject{
 	 * @param PhpWsdlParam $return Optional the return value (default: NULL)
 	 * @param array $settings Optional the settings hash array (default: NULL)
 	 */
-	public function PhpWsdlMethod($name,$param=null,$return=null,$settings=null){
+	public function __construct($name,$param=null,$return=null,$settings=null){
 		PhpWsdl::Debug('New method '.$name);
-		parent::PhpWsdlObject($name,$settings);
+		parent::__construct($name,$settings);
 		if(!is_null($param))
 			$this->Param=$param;
 		$this->Return=$return;

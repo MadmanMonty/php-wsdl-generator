@@ -403,7 +403,7 @@ class PhpWsdl{
 	 * @param boolean $outputOnRequest Output WSDL on request? (default: FALSE)
 	 * @param boolean|string|object|array $runServer Run SOAP server? (default: FALSE)
 	 */
-	public function PhpWsdl(
+	public function __construct(
 		$nameSpace=null,
 		$endPoint=null,
 		$cacheFolder=null,

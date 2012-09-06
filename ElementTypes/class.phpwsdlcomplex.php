@@ -61,9 +61,9 @@ class PhpWsdlComplex extends PhpWsdlObject{
 	 * @param PhpWsdlElement[] $el Optional a list of elements
 	 * @param array $settings Optional the settings hash array (default: NULL)
 	 */
-	public function PhpWsdlComplex($name,$el=Array(),$settings=null){
+	public function __construct($name,$el=Array(),$settings=null){
 		PhpWsdl::Debug('New complex type '.$name);
-		parent::PhpWsdlObject($name,$settings);
+		parent::__construct($name,$settings);
 		if(!self::$DisableArrayPostfix){
 			$this->IsArray=substr($name,strlen($name)-5,5)=='Array';
 			if($this->IsArray)

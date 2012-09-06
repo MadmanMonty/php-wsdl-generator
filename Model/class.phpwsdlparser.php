@@ -62,7 +62,7 @@ class PhpWsdlParser{
 	 * 
 	 * @param PhpWsdl $server The PhpWsdl object
 	 */
-	public function PhpWsdlParser($server){
+	public function __construct($server){
 		PhpWsdl::Debug('New PhpWsdlParser');
 		$this->Server=$server;
 	}

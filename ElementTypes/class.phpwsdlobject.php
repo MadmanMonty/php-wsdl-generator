@@ -57,7 +57,7 @@ class PhpWsdlObject{
 	 * @param string $name The name
 	 * @param array $settings Settings array (default: NULL)
 	 */
-	public function PhpWsdlObject($name,$settings=null){
+	public function __construct($name,$settings=null){
 		$this->GUID=uniqid();
 		PhpWsdl::Debug('New PhpWsdlObject "'.$name.'" with GUID "'.$this->GUID.'"');
 		$this->Name=$name;

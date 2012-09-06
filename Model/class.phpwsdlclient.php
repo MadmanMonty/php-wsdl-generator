@@ -163,7 +163,7 @@ class PhpWsdlClient{
 	 * @param array $options SOAP call options (default: NULL)
 	 * @param array $requestHeaders SOAP call request headers (default: NULL)
 	 */
-	public function PhpWsdlClient($wsdlUri,$options=null,$requestHeaders=null,$clientOptions=Array()){
+	public function __construct($wsdlUri,$options=null,$requestHeaders=null,$clientOptions=Array()){
 		PhpWsdl::Debug('New PhpWsdlClient '.$wsdlUri);
 		$this->WsdlUri=$wsdlUri;
 		$this->Options=$options;

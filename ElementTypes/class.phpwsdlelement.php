@@ -54,9 +54,9 @@ class PhpWsdlElement extends PhpWsdlParam{
 	 * @param string $type The type name
 	 * @param array $settings Optional the settings hash array (default: NULL)
 	 */
-	public function PhpWsdlElement($name,$type,$settings=null){
+	public function __construct($name,$type,$settings=null){
 		PhpWsdl::Debug('New complex type element '.$name);
-		parent::PhpWsdlParam($name,$type,$settings);
+		parent::__construct($name,$type,$settings);
 		$this->NillAble=!in_array($type,PhpWsdl::$NonNillable);
 		if(!is_null($settings)){
 			if(isset($settings['nillable']))
