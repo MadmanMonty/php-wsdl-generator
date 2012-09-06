@@ -1,4 +1,5 @@
 <?php
+namespace Wan24\PhpWsdlBundle;
 
 /*
 PhpWsdl - Generate WSDL from PHP
@@ -17,9 +18,6 @@ You should have received a copy of the GNU General Public License along with
 this program; if not, see <http://www.gnu.org/licenses/>.
 */
 
-if(basename($_SERVER['SCRIPT_FILENAME'])==basename(__FILE__))
-	exit;
-
 // Debugging
 /*PhpWsdl::$Debugging=true;// Enable debugging
 PhpWsdl::$DebugFile='./cache/debug.log';// The logfile to write the debugging messages to
@@ -33,10 +31,10 @@ PhpWsdl::Init();
 // requires out.
 // You may also disable loading the class.phpwsdlproxy.php, if you don't plan 
 // to use the proxy class for your webservice.
-require_once(dirname(__FILE__).'/class.phpwsdlformatter.php');
+require_once(dirname(__FILE__).'/Model/class.phpwsdlformatter.php');
 require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlobject.php');
-require_once(dirname(__FILE__).'/class.phpwsdlparser.php');
-require_once(dirname(__FILE__).'/class.phpwsdlproxy.php');
+require_once(dirname(__FILE__).'/Model/class.phpwsdlparser.php');
+require_once(dirname(__FILE__).'/Model/class.phpwsdlproxy.php');
 require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlparam.php');
 require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlmethod.php');
 require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlelement.php');
@@ -784,11 +782,11 @@ class PhpWsdl{
 			$tLen=sizeof($this->Types);
 			if($mLen<1&&$tLen<1){
 				self::Debug('No methods and types');
-				throw(new Exception('No methods and no complex types are available'));
+				throw(new \Exception('No methods and no complex types are available'));
 			}
 			if(is_null($this->Name)){
 				self::Debug('No name');
-				throw(new Exception('Could not determine webservice handler class name'));
+				throw(new \Exception('Could not determine webservice handler class name'));
 			}
 		}
 		$res=Array();
@@ -1073,7 +1071,7 @@ class PhpWsdl{
 		self::Debug('Produce human readable XML');
 		$input=fopen('data://text/plain,'.$xml,'r');
 		$output=fopen('php://temp','w');
-		$xf=new PhpWsdlFormatter($input,$output);
+		$xf=new \PhpWsdlFormatter($input,$output);
 		$xf->format();
 		rewind($output);
 		$xml=stream_get_contents($output);
@@ -1135,7 +1133,7 @@ class PhpWsdl{
 		}
 		// Parse the source
 		self::Debug('Run the parser');
-		$parser=new PhpWsdlParser($this);
+		$parser=new \PhpWsdlParser($this);
 		$parser->Parse(implode("\n",$src));
 	}
 	
@@ -1731,7 +1729,7 @@ class PhpWsdl{
 		if(is_null($class)){
 			self::Debug('No webservice name yet');
 			if(!$this->DetermineConfiguration())
-				throw(new Exception('Invalid configuration'));
+				throw(new \Exception('Invalid configuration'));
 			if(!is_null($this->Name))
 				$class=$this->Name;
 		}else if(is_string($class)){
@@ -1778,7 +1776,7 @@ class PhpWsdl{
 						}
 					if(!class_exists($class))
 						// A handler class or object is required when using non-global methods!
-						throw(new Exception('Webservice handler class not present'));
+						throw(new \Exception('Webservice handler class not present'));
 				}
 			}
 		// Prepare the SOAP server
@@ -2400,21 +2398,21 @@ class PhpWsdl{
 		self::$Config['tns']='tns';			// The xmlns name for the target namespace
 		self::$Config['xsd']='s';			// The xmlns name for the XSD namespace
 		// Parser hooks
-		self::RegisterHook('InterpretKeywordserviceHook','internal','PhpWsdl::InterpretService');
+		self::RegisterHook('InterpretKeywordserviceHook','internal','self::InterpretService');
 		// WSDL hooks
-		self::RegisterHook('CreateWsdlHeaderHook','internal','PhpWsdl::CreateWsdlHeader');
-		self::RegisterHook('CreateWsdlTypeSchemaHook','internal','PhpWsdl::CreateWsdlTypeSchema');
-		self::RegisterHook('CreateWsdlMessagesHook','internal','PhpWsdl::CreateWsdlMessages');
-		self::RegisterHook('CreateWsdlPortsHook','internal','PhpWsdl::CreateWsdlPorts');
-		self::RegisterHook('CreateWsdlBindingsHook','internal','PhpWsdl::CreateWsdlBindings');
-		self::RegisterHook('CreateWsdlServiceHook','internal','PhpWsdl::CreateWsdlService');
-		self::RegisterHook('CreateWsdlFooterHook','internal','PhpWsdl::CreateWsdlFooter');
-		self::RegisterHook('CreateWsdlOptimizeHook','internal','PhpWsdl::CreateWsdlOptimize');
+		self::RegisterHook('CreateWsdlHeaderHook','internal','self::CreateWsdlHeader');
+		self::RegisterHook('CreateWsdlTypeSchemaHook','internal','self::CreateWsdlTypeSchema');
+		self::RegisterHook('CreateWsdlMessagesHook','internal','self::CreateWsdlMessages');
+		self::RegisterHook('CreateWsdlPortsHook','internal','self::CreateWsdlPorts');
+		self::RegisterHook('CreateWsdlBindingsHook','internal','self::CreateWsdlBindings');
+		self::RegisterHook('CreateWsdlServiceHook','internal','self::CreateWsdlService');
+		self::RegisterHook('CreateWsdlFooterHook','internal','self::CreateWsdlFooter');
+		self::RegisterHook('CreateWsdlOptimizeHook','internal','self::CreateWsdlOptimize');
 		// HTML hooks
-		self::RegisterHook('CreateHtmlGeneralHook','internal','PhpWsdl::CreateHtmlGeneral');
-		self::RegisterHook('CreateHtmlIndexHook','internal','PhpWsdl::CreateHtmlIndex');
-		self::RegisterHook('CreateHtmlMethodsHook','internal','PhpWsdl::CreateHtmlMethods');
-		self::RegisterHook('CreateHtmlComplexTypesHook','internal','PhpWsdl::CreateHtmlComplexTypes');
+		self::RegisterHook('CreateHtmlGeneralHook','internal','self::CreateHtmlGeneral');
+		self::RegisterHook('CreateHtmlIndexHook','internal','self::CreateHtmlIndex');
+		self::RegisterHook('CreateHtmlMethodsHook','internal','self::CreateHtmlMethods');
+		self::RegisterHook('CreateHtmlComplexTypesHook','internal','self::CreateHtmlComplexTypes');
 		// Extensions
 		self::Debug('Load extensions');
 		$files=glob(dirname(__FILE__).'/'.'class.phpwsdl.*.php');
