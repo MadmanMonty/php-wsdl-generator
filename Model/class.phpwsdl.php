@@ -34,13 +34,13 @@ PhpWsdl::Init();
 // You may also disable loading the class.phpwsdlproxy.php, if you don't plan 
 // to use the proxy class for your webservice.
 require_once(dirname(__FILE__).'/class.phpwsdlformatter.php');
-require_once(dirname(__FILE__).'/class.phpwsdlobject.php');
+require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlobject.php');
 require_once(dirname(__FILE__).'/class.phpwsdlparser.php');
 require_once(dirname(__FILE__).'/class.phpwsdlproxy.php');
-require_once(dirname(__FILE__).'/class.phpwsdlparam.php');
-require_once(dirname(__FILE__).'/class.phpwsdlmethod.php');
-require_once(dirname(__FILE__).'/class.phpwsdlelement.php');
-require_once(dirname(__FILE__).'/class.phpwsdlcomplex.php');
+require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlparam.php');
+require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlmethod.php');
+require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlelement.php');
+require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlcomplex.php');
 
 // Do things after the environment is configured
 PhpWsdl::PostInit();
@@ -49,7 +49,7 @@ PhpWsdl::PostInit();
  * PhpWsdl class
  * 
  * @author Andreas Zimmermann
- * @copyright ©2011 Andreas Zimmermann, wan24.de
+ * @copyright Â©2011 Andreas Zimmermann, wan24.de
  * @version 2.3
  */
 class PhpWsdl{
