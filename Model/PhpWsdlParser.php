@@ -1,5 +1,7 @@
 <?php
+namespace Wan24\PhpWsdlBundle\Model;
 use Wan24\PhpWsdlBundle\PhpWsdl;
+
 /*
 PhpWsdl - Generate WSDL from PHP
 Copyright (C) 2011  Andreas Zimmermann, wan24.de 
