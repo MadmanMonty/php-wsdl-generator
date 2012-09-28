@@ -1,7 +1,6 @@
 <?php
 namespace Wan24\PhpWsdlBundle\Model;
 use Wan24\PhpWsdlBundle\PhpWsdl;
-
 /*
 PhpWsdl - Generate WSDL from PHP
 Copyright (C) 2011  Andreas Zimmermann, wan24.de 
@@ -108,7 +107,7 @@ class PhpWsdlParser{
 					$temp[2][$j],
 					trim($temp[3][$j])
 				);
-			if(PhpWsdl::$Debugging)
+			if(PhpWsdl::$debugging)
 				PhpWsdl::Debug('Keywords: '.print_r($keywords,true));
 			// Parse documentation
 			if($this->Server->ParseDocs){
@@ -174,7 +173,7 @@ class PhpWsdlParser{
 		$len=sizeof($keywords);
 		while(++$i<$len){
 			$keyword=$keywords[$i];
-			if(PhpWsdl::$Debugging)
+			if(PhpWsdl::$debugging)
 				PhpWsdl::Debug('Interpret keyword '.print_r($keyword,true));
 			// Call the global keyword handler
 			if(!PhpWsdl::CallHook(

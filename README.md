@@ -231,14 +231,14 @@ All debug messages are collected with the PhpWsdl::Debug method. All messages
 are being collected in the PhpWsdl::$DebugInfo array. But PhpWsdl can also 
 write to a text log file, too.
 
-To enable debugging, set the property PhpWsdl::$Debugging to TRUE:
+To enable debugging, set the property PhpWsdl::$debugging to TRUE:
 
-PhpWsdl::$Debugging=true;
+PhpWsdl::$debugging=true;
 
-To enable writing to a log file, set the property PhpWsdl::$DebugFile to the 
+To enable writing to a log file, set the property PhpWsdl::$debugFile to the 
 location of the file:
 
-PhpWsdl::$DebugFile='./cache/debug.log';
+PhpWsdl::$debugFile='./cache/debug.log';
 
 You can enable adding backtrace informations in the debug message by setting 
 the property PhpWsdl::$DebugBackTrace to TRUE:

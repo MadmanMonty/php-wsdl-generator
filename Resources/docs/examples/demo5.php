@@ -7,7 +7,7 @@
 
 require_once('class.phpwsdl.php');
 ini_set('soap.wsdl_cache_enabled',0);	// Disable caching in PHP
-PhpWsdl::$CacheTime=0;					// Disable caching in PhpWsdl
+PhpWsdl::$cacheTime=0;					// Disable caching in PhpWsdl
 PhpWsdlMethod::$IsGlobalDefault=true;	// Serve any method as global per default
 PhpWsdl::RunQuickMode();				// Run in quick mode
 

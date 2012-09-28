@@ -27,7 +27,7 @@ if(basename($_SERVER['SCRIPT_FILENAME'])==basename(__FILE__))
 
 class PhpWsdlProxy{
 	public function __call($method,$param){
-		if(PhpWsdl::$Debugging)
+		if(PhpWsdl::$debugging)
 			PhpWsdl::Debug('Proxy call method '.$method.': '.print_r($param,true));
 		PhpWsdl::$ProxyServer->CreateWsdl();
 		$m=PhpWsdl::$ProxyServer->GetMethod($method);

@@ -41,7 +41,7 @@ $soap=PhpWsdl::CreateInstance(
 
 // Disable caching for demonstration
 ini_set('soap.wsdl_cache_enabled',0);	// Disable caching in PHP
-PhpWsdl::$CacheTime=0;					// Disable caching in PhpWsdl
+PhpWsdl::$cacheTime=0;					// Disable caching in PhpWsdl
 
 // Run the SOAP server
 if($soap->IsWsdlRequested())

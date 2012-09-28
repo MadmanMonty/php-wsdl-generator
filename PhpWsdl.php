@@ -1,6 +1,9 @@
 <?php
 namespace Wan24\PhpWsdlBundle;
+
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Wan24\PhpWsdlBundle\SoapServer;
+use Symfony\Component\HttpFoundation\Response;
 
 /*
 PhpWsdl - Generate WSDL from PHP
@@ -20,8 +23,8 @@ this program; if not, see <http://www.gnu.org/licenses/>.
 */
 
 // Debugging
-/*PhpWsdl::$Debugging=true;// Enable debugging
-PhpWsdl::$DebugFile='./cache/debug.log';// The logfile to write the debugging messages to
+/*PhpWsdl::$debugging=true;// Enable debugging
+PhpWsdl::$debugFile='./cache/debug.log';// The logfile to write the debugging messages to
 PhpWsdl::$DebugBackTrace=false;// Include backtrace information in debugging messages?*/
 
 // Initialize PhpWsdl
@@ -34,13 +37,13 @@ PhpWsdl::Init();
 // to use the proxy class for your webservice.
 require_once(dirname(__FILE__).'/Model/class.phpwsdlformatter.php');
 require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlobject.php');
-require_once(dirname(__FILE__).'/Model/class.phpwsdlparser.php');
+use Wan24\PhpWsdlBundle\Model\PhpWsdlParser;
 require_once(dirname(__FILE__).'/Model/class.phpwsdlproxy.php');
 require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlparam.php');
 require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlmethod.php');
 require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlelement.php');
 require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlcomplex.php');
-
+require_once(dirname(__FILE__).'/ElementTypes/class.phpwsdlenum.php');
 // Do things after the environment is configured
 PhpWsdl::PostInit();
 
@@ -57,7 +60,7 @@ class PhpWsdl{
      * 
      * $var ContainerInterface
      */
-    protected $container;
+    public $container;
     
 	/**
 	 * The version number 
@@ -187,6 +190,12 @@ class PhpWsdl{
 	 * @var string
 	 */
 	public $PHP=null;
+        /**
+         *
+         * A response object to be passed back to client
+         * @var Symfony\Component\HttpFoundation\Response
+         */
+        public $SOAP=null;
 	/**
 	 * An array of basic types (these are just some of the XSD defined types 
 	 * (see http://www.w3.org/TR/2001/PR-xmlschema-2-20010330/)
@@ -256,7 +265,7 @@ class PhpWsdl{
 	 * 
 	 * @var int
 	 */
-	public static $CacheTime=3600;
+	public static $cacheTime=3600;
 	/**
 	 * Write even unoptimized and/or documented XML to the cache?
 	 * 
@@ -376,13 +385,13 @@ class PhpWsdl{
 	 * 
 	 * @var boolean
 	 */
-	public static $Debugging=false;
+	public static $debugging=false;
 	/**
 	 * The debug file to write to
 	 * 
 	 * @var string
 	 */
-	public static $DebugFile=null;
+	public static $debugFile=null;
 	/**
 	 * Put backtrace information in debugging messages
 	 * 
@@ -395,7 +404,14 @@ class PhpWsdl{
 	 * @var array
 	 */
 	public static $NameSpaces=null;
-	
+
+        /**
+         * ResponseType to be returned to client
+         * @var string
+         */
+        public $ResponseType=null;
+        
+        public $soapResponse=null;
 	/**
 	 * PhpWsdl constructor
 	 * Note: The quick mode by giving TRUE as first parameter is deprecated and will be removed from version 3.0.
@@ -435,7 +451,7 @@ class PhpWsdl{
 			$quickRun=true;
 			$nameSpace=null;
 			if(!is_null($endPoint)){
-				if(self::$Debugging)
+				if(self::$debugging)
 					self::Debug('Filename(s): '.print_r($endPoint,true));
 				$endPoint=null;
 			}
@@ -467,17 +483,17 @@ class PhpWsdl{
 		}
 		// Source files
 		if(!is_null($file)){
-			if(self::$Debugging)
+			if(self::$debugging)
 				self::Debug('Filename(s): '.print_r($file,true));
 			$this->Files=array_merge($this->Files,(is_array($file))?$file:Array($file));
 		}
 		// Methods
 		$this->Methods=(!is_null($methods))?$methods:Array();
-		if(sizeof($this->Methods)>0&&self::$Debugging)
+		if(sizeof($this->Methods)>0&&self::$debugging)
 			self::Debug('Methods: '.print_r($this->Methods,true));
 		// Types
 		$this->Types=(!is_null($types))?$types:Array();
-		if(sizeof($this->Types)>0&&self::$Debugging)
+		if(sizeof($this->Types)>0&&self::$debugging)
 			self::Debug('Types: '.print_r($this->Types,true));
 		// Constructor hook
 		self::CallHook(
@@ -628,7 +644,7 @@ class PhpWsdl{
 		if($allCaching)
 			self::$CacheFolder=null;
 		if(!$allCaching)
-			self::$CacheTime=0;
+			self::$cacheTime=0;
 	}
 	
 	/**
@@ -650,10 +666,10 @@ class PhpWsdl{
 			}
 		}
 		if(is_null($timeout))
-			$timeout=(self::$CacheTime!=0)?self::$CacheTime:3600;
+			$timeout=(self::$cacheTime!=0)?self::$cacheTime:3600;
 		self::Debug('Enable cache in folder "'.((is_null($folder))?'(none)':$folder).'" with timeout '.$timeout.' seconds');
 		self::$CacheFolder=$folder;
-		self::$CacheTime=$timeout;
+		self::$cacheTime=$timeout;
 	}
 	
 	/**
@@ -746,7 +762,7 @@ class PhpWsdl{
 	 */
 	public function DetermineEndPoint(){
             $request = $this->container->get('request');            
-            return ((isset($_SERVER['HTTPS'])&&$_SERVER['HTTPS']=='on')?'https':'http').'://'.$_SERVER['SERVER_NAME']. ( $request->server->get('SERVER_PORT')!= '443'?  ':' . $request->server->get('SERVER_PORT') : '') .$_SERVER['PHP_SELF'];
+            return ((isset($_SERVER['HTTPS'])&&$_SERVER['HTTPS']=='on')?'https':'http').'://'.$_SERVER['SERVER_NAME']. ( !($request->server->get('SERVER_PORT')== '443' || $request->server->get('SERVER_PORT')== '80') ?  ':' . $request->server->get('SERVER_PORT') : '') .$_SERVER['PHP_SELF'];
 	}
 
 	/**
@@ -1147,7 +1163,7 @@ class PhpWsdl{
 		}
 		// Parse the source
 		self::Debug('Run the parser');
-		$parser=new \PhpWsdlParser($this);
+		$parser=new PhpWsdlParser($this);
 		$parser->Parse(implode("\n",$src));
 	}
 	
@@ -1166,25 +1182,23 @@ class PhpWsdl{
 		)
 			return;
 		self::Debug('Output WSDL');
+                $this->soapResponse = new Response($this->CreateWsdl());
+                $this->ResponseType = "WSDL";
 		if($withHeaders)
-			header('Content-Type: text/xml; charset=UTF-8',true);
-		echo $this->CreateWsdl();
+                        $this->soapResponse->headers->set('Content-Type', 'text/xml; charset=utf-8');  
+
+		return true;
 	}
 
 	/**
 	 * Output the WSDL to the client, if requested
-	 * 
-	 * @param boolean $andExit Exit after sending WSDL? (default: TRUE)
+	 * 	 
 	 * @return boolean Has the WSDL been sent to the client?
 	 */
-	public function OutputWsdlOnRequest($andExit=true){
+	public function OutputWsdlOnRequest(){
 		if(!$this->IsWsdlRequested())
-			return false;
+			return false;                
 		$this->OutputWsdl();
-		if($andExit){
-			self::Debug('Exit script execution');
-			exit;
-		}
 		return true;
 	}
 	
@@ -1192,11 +1206,10 @@ class PhpWsdl{
 	 * Output the HTML to the client
 	 * 
 	 * @param boolean $withHeaders Send HTML headers? (default: TRUE)
-	 * @param boolean $echo Print HTML (default: TRUE)
 	 * @param boolean $cache Cache the result (default: TRUE);
 	 * @return string The HTML
 	 */
-	public function OutputHtml($withHeaders=true,$echo=true,$cache=true){
+	public function OutputHtml($withHeaders=true,$cache=true){
 		self::Debug('Output HTML');
 		if(sizeof($this->Methods)<1)
 			$this->CreateWsdl();
@@ -1208,14 +1221,14 @@ class PhpWsdl{
 			)
 		)
 			return;
-		// Header
-		if($withHeaders)
-			header('Content-Type: text/html; charset=UTF-8',true);
 		$this->GetWsdlFromCache();
 		if(!is_null($this->HTML)){
-			if($echo)
-				echo $this->HTML;
-			return $this->HTML;
+			$this->ResponseType = 'HTML';
+			$this->soapResponse = new Response($this->HTML);
+                        // Header                
+                        if($withHeaders)
+                                $this->soapResponse->headers->set('Content-Type: text/html; charset=UTF-8',true);                
+                        return true;
 		}
 		$res=Array();
 		$res[]='<html>';
@@ -1353,7 +1366,7 @@ class PhpWsdl{
 		$pdfLink=self::$HTML2PDFAPI.'?'.implode('&',$param);
 		// Footer
 		$res[]='<hr>';
-		$res[]='<p><small>Powered by <a href="http://code.google.com/p/php-wsdl-creator/">PhpWsdl</a><span class="noprint"> - PDF download: <a href="'.$pdfLink.'">Download this page as PDF</a></span></small></p>';
+		$res[]='<p><small>Powered by <a href="http://code.google.com/p/php-wsdl-creator/">PhpWsdl</a>' . (self::$HTML2PDFLicenseKey ? '<span class="noprint"> - PDF download: <a href="'.$pdfLink.'">Download this page as PDF</a></span></small></p>':'</small></p>');
 		$res[]='</body>';
 		$res[]='</html>';
 		// Clean up the generated HTML and send it
@@ -1370,11 +1383,14 @@ class PhpWsdl{
 			return;
 		$res=utf8_encode($res);
 		$this->HTML=$res;
+                $this->soapResponse = new Response($this->HTML);
+                // Header                
+                if($withHeaders)
+                        $this->soapResponse->headers->set('Content-Type: text/html; charset=UTF-8',true);                                
+                $this->ResponseType = 'HTML';
 		if($cache)
 			$this->WriteWsdlToCache(null,null,null,true);
-		if($echo)
-			echo $res;
-		return $res;
+		return true;
 	}
 	
 	/**
@@ -1527,12 +1543,12 @@ class PhpWsdl{
 	 * Output the PHP SOAP client source for this webservice
 	 * 
 	 * @param boolean $withHeaders Send text headers? (default: TRUE)
-	 * @param boolean $echo Print source (default: TRUE)
+	 * @param boolean $echo Print source (default: FALSE)
 	 * @param array $options Options array (default: array)
 	 * @param boolean $cache Cache the result (default: TRUE);
 	 * @return string PHP source
 	 */
-	public function OutputPhp($withHeaders=true,$echo=true,$options=Array(),$cache=true){
+	public function OutputPhp($withHeaders=true,$echo=false,$options=Array(),$cache=true){
 		self::Debug('Output PHP');
 		if(sizeof($this->Methods)<1)
 			$this->CreateWsdl();
@@ -1562,21 +1578,23 @@ class PhpWsdl{
 			'options'		=>	&$options,
 			'res'			=>	&$res
 		);
+                $this->soapResponse = new Response();
 		// Header
 		if($withHeaders){
-			header('Content-Type: text/plain; charset=UTF-8',true);
-			header('Content-Disposition: attachment; filename='.$options['class'].'.php');
+			$this->soapResponse->headers->set('Content-Type','text/plain; charset=UTF-8',true);
+			$this->soapResponse->headers->set('Content-Disposition','attachment; filename='.$options['class'].'.php');
 		}
 		if(!$hasOptions){
 			if(is_null($this->PHP))
 				$this->GetWsdlFromCache();
 			if(!is_null($this->PHP)){
-				if($echo)
-					echo $this->PHP;
+                                $this->ResponseType = 'PHP';
+                                $this->soapResponse->setContent($this->PHP);
 				return $this->PHP;
 			}
 		}else if(isset($options['php'])&&!is_null($options['php'])){
-			echo $options['php'];
+                        $this->ResponseType = 'PHP';
+			$this->soapResponse->setContent( $options['php']);
 			return $options['php'];
 		}
 		$res=Array();
@@ -1641,13 +1659,14 @@ class PhpWsdl{
 		self::CallHook('EndCreatePhpHook',$data);
 		$res=utf8_encode(implode("\n",$res));
 		if(!$hasOptions){
-			if(is_null($this->PHP))
+			if(is_null($this->PHP)){
 				$this->PHP=$res;
+                                $this->ResponseType = 'PHP';
+                                $this->soapResponse->setContent($this->PHP);
+                        }
 			if($cache)
 				$this->WriteWsdlToCache(null,null,null,true);
-		}
-		if($echo)
-			echo $res;
+		}		
 		return $res;
 	}
 	
@@ -1660,7 +1679,7 @@ class PhpWsdl{
 	public function OutputPhpOnRequest($andExit=true){
 		if(!$this->IsPhpRequested())
 			return false;
-		$this->OutputPhp();
+		$this->Response = $this->OutputPhp();
 		if($andExit){
 			self::Debug('Exit script execution');
 			exit;
@@ -1675,7 +1694,7 @@ class PhpWsdl{
 	 * @param string|object|array $class The class name to serve, the classname and class as array or NULL (default: NULL)
 	 * @param boolean $andExit Exit after running the server? (default: TRUE)
 	 * @param boolean $forceNoWsdl Force no WSDL usage? (default: FALSE);
-	 * @return boolean Did the server run?
+	 * @return Response|boolean Reponse object returned or false on error
 	 */
 	public function RunServer($wsdlFile=null,$class=null,$andExit=true,$forceNoWsdl=false){
 		self::Debug('Run the server');
@@ -1824,14 +1843,14 @@ class PhpWsdl{
 				'uri'			=>	$this->NameSpace,
 			);
 			$temp=array_merge($this->SoapServerOptions,$temp);
-			if(self::$Debugging)
+			if(self::$debugging)
 				self::Debug('Server options: '.print_r($temp,true));
 			// Create the server object
 			self::Debug('Creating PHP SoapServer object');
-			$this->SoapServer=new SoapServer(
+			$this->SoapServer= new SoapServer(
 				$wsdlFile,
 				$temp
-			);
+			);                      
 			// Set the handler class or object
 			if($useProxy||!is_object($class)){
 				$temp=($useProxy)?'PhpWsdlProxy':$class;
@@ -1871,11 +1890,8 @@ class PhpWsdl{
 			)
 		){
 			self::Debug('Run the SOAP server');
-			$this->SoapServer->handle();
-			if($andExit){
-				self::Debug('Exit script execution');
-				exit;
-			}
+			$this->soapResponse = $this->SoapServer->handle();
+                        $this->ResponseType = 'SOAP';
 		}
 		return true;
 	}
@@ -1987,7 +2003,7 @@ class PhpWsdl{
 			$file=$this->GetCacheFileName();
 		if(!$this->CacheFileExists($file))
 			return false;
-		return self::$CacheTime<0||time()-file_get_contents($file.'.cache')<=self::$CacheTime;
+		return self::$cacheTime<0||time()-file_get_contents($file.'.cache')<=self::$cacheTime;
 	}
 	
 	/**
@@ -2323,7 +2339,7 @@ class PhpWsdl{
 	public static function RegisterHook($hook,$name,$data){
 		if(!self::HasHookHandler($hook))
 			self::$Config['extensions'][$hook]=Array();
-		if(self::$Debugging){
+		if(self::$debugging){
 			$handler=$data;
 			if(is_array($handler)){
 				$class=$handler[0];
@@ -2354,7 +2370,7 @@ class PhpWsdl{
 			return;
 		}
 		unset(self::$Config['extensions'][$hook][$name]);
-		if(self::$Debugging)
+		if(self::$debugging)
 			self::Debug('Unregister hook '.$hook.' handler '.$name);
 		if(sizeof(self::$Config['extensions'][$hook])<1)
 			unset(self::$Config['extensions'][$hook]);
@@ -2376,7 +2392,7 @@ class PhpWsdl{
 	 * @param string $str The message to add to the debug protocol
 	 */
 	public static function Debug($str){
-		if(!self::$Debugging)
+		if(!self::$debugging)
 			return;
 		$temp=date('Y-m-d H:i:s')."\t".$str;
 		if(self::$DebugBackTrace){
@@ -2384,10 +2400,10 @@ class PhpWsdl{
 			$temp.=" ('".$trace[1]['function']."' in '".basename($trace[1]['file'])."' at line #".$trace[1]['line'].")";
 		}
 		self::$DebugInfo[]=$temp;
-		if(!is_null(self::$DebugFile))
-			if(file_put_contents(self::$DebugFile,$temp."\n",FILE_APPEND)===false){
-				self::Debug('Could not write to debug file '.self::$DebugFile);
-				self::$DebugFile=null;
+		if(!is_null(self::$debugFile))
+			if(file_put_contents(self::$debugFile,$temp."\n",FILE_APPEND)===false){
+				self::Debug('Could not write to debug file '.self::$debugFile);
+				self::$debugFile=null;
 			}
 	}
 
