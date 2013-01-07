@@ -2391,7 +2391,7 @@ class PhpWsdl{
 	 * 
 	 * @param string $str The message to add to the debug protocol
 	 */
-	public static function Debug($str){
+	public static function Debug($str, $fileExt = ''){
 		if(!self::$debugging)
 			return;
 		$temp=date('Y-m-d H:i:s')."\t".$str;
@@ -2401,7 +2401,7 @@ class PhpWsdl{
 		}
 		self::$DebugInfo[]=$temp;
 		if(!is_null(self::$debugFile))
-			if(file_put_contents(self::$debugFile,$temp."\n",FILE_APPEND)===false){
+			if(file_put_contents(self::$debugFile . '.' . $fileExt,$temp."\n",FILE_APPEND)===false){
 				self::Debug('Could not write to debug file '.self::$debugFile);
 				self::$debugFile=null;
 			}
