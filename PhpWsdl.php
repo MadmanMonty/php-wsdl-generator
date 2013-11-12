@@ -4,6 +4,8 @@ namespace Wan24\PhpWsdlBundle;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Wan24\PhpWsdlBundle\SoapServer;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Exception\IOException;
 
 /*
 PhpWsdl - Generate WSDL from PHP
@@ -440,7 +442,7 @@ class PhpWsdl{
 		$outputOnRequest=false,
 		$runServer=false                
 		){
-            
+
                 $this->container = $container;
                 
 		// Quick mode
@@ -467,9 +469,9 @@ class PhpWsdl{
 		self::Debug('Optimizer is '.(($this->Optimize)?'enabled':'disabled'));
 		// Cache settings
 		if(!is_null($cacheFolder)){
-			self::Debug('Cache folder is '.$cacheFolder);
-			self::$CacheFolder=$cacheFolder;
-		}
+			self::Debug('Cache folder is '.$cacheFolder);			
+		}                
+                self::EnableCache($cacheFolder);
 		// Namespace
 		$this->NameSpace=(is_null($nameSpace))?$this->DetermineNameSpace():$nameSpace;
 		self::Debug('Namespace is '.$this->NameSpace);
@@ -654,22 +656,22 @@ class PhpWsdl{
 	 * @param int $timeout The caching timeout in seconds or NULL to use the previous value or the default (3600) (default: NULL)
 	 */
 	public static function EnableCache($folder=null,$timeout=null){
-		if(is_null($folder)){
-			if(self::IsCacheFolderWriteAble('./cache')){
-				$folder='./cache';
-			}else if(self::IsCacheFolderWriteAble(dirname(__FILE__).'/cache')){
-				$folder=dirname(__FILE__).'/cache';
-			}else if(self::IsCacheFolderWriteAble(sys_get_temp_dir())){
-				$folder=sys_get_temp_dir();
-			}else{
-				self::Debug('Could not find a cache folder');
-			}
-		}
-		if(is_null($timeout))
-			$timeout=(self::$cacheTime!=0)?self::$cacheTime:3600;
-		self::Debug('Enable cache in folder "'.((is_null($folder))?'(none)':$folder).'" with timeout '.$timeout.' seconds');
-		self::$CacheFolder=$folder;
-		self::$cacheTime=$timeout;
+            if(!is_null($folder) && self::IsCacheFolderWriteAble($folder)){
+                self::$CacheFolder = $folder;
+            }else if(self::IsCacheFolderWriteAble('./cache')){
+                self::$CacheFolder='./cache';
+            }else if(self::IsCacheFolderWriteAble(dirname(__FILE__).'/cache')){
+                self::$CacheFolder=dirname(__FILE__).'/cache';
+            }else if(self::IsCacheFolderWriteAble(sys_get_temp_dir())){
+                self::$CacheFolder=sys_get_temp_dir();
+            }else {
+                self::Debug('Could not find a cache folder');
+            }
+            if(is_null($timeout)) {
+                $timeout=(self::$cacheTime!=0)?self::$cacheTime:3600;
+            }
+            self::Debug('Enable cache in folder "'.((is_null(self::$CacheFolder))?'(none)':self::$CacheFolder).'" with timeout '.$timeout.' seconds');		
+            self::$cacheTime=$timeout;
 	}
 	
 	/**
@@ -2162,14 +2164,25 @@ class PhpWsdl{
 			self::$CacheFolderWriteAble=false;
 			return false;
 		}
-		if(!is_dir($folder)){
-			self::Debug('Invalid cache folder (not a directory?)');
-			self::$CacheFolderWriteAble=false;
-			return;
-		}
+                $fs = new Filesystem();
+
+                if(!$fs->exists($folder)){                    
+                    try {                        
+                        $fs->mkdir($folder);
+                    } catch (IOException $e) {
+                        self::Debug('An error occurred while creating your directory');
+                        return false;
+                    }                
+                    if(!is_dir($folder)){
+                            self::Debug('Invalid cache folder (not a directory?)');
+                            self::$CacheFolderWriteAble=false;
+                            return;
+                    }
+                }
 		$file=uniqid();
-		while(file_exists($folder.'/'.$file))
+		while(file_exists($folder.'/'.$file)) {
 			$file=uniqid();
+                }
 		$file=$folder.'/'.$file;
 		$temp=uniqid();
 		if(file_put_contents($file,$temp)===false){
@@ -2423,7 +2436,7 @@ class PhpWsdl{
 			'wsdl'			=>	'http://schemas.xmlsoap.org/wsdl/',
 			'soapenc'		=>	'http://schemas.xmlsoap.org/soap/encoding/'
 		);
-		self::EnableCache();
+		
 		self::$Config['extensions']=Array();// A configuration space for extensions
 		self::$Config['tns']='tns';			// The xmlns name for the target namespace
 		self::$Config['xsd']='s';			// The xmlns name for the XSD namespace
