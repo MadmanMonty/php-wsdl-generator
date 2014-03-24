@@ -1,4 +1,4 @@
-This repo is a port from https://code.google.com/p/php-wsdl-creator/ and is under construction for use with Symfony2 - Under construction.
+This repo is a port from https://code.google.com/p/php-wsdl-creator/ for use with Symfony2
 
 At this stage its functioning within its own bundle, but does not confirm to Symfony2 standards (PSR-0/1)
 
