@@ -460,7 +460,7 @@ class PhpWsdl{
 		}
 		// SOAP server options
 		$this->SoapServerOptions=Array(
-			'soap_version'	=>	SOAP_1_1|SOAP_1_2,
+			'soap_version'	=>	SOAP_1_2,
 			'encoding'		=>	'UTF-8',
 			'compression'	=>	SOAP_COMPRESSION_ACCEPT|SOAP_COMPRESSION_GZIP|9
 		);
