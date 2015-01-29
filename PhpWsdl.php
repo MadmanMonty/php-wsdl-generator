@@ -53,7 +53,7 @@ PhpWsdl::PostInit();
  * PhpWsdl class
  * 
  * @author Andreas Zimmermann
- * @copyright Â©2011 Andreas Zimmermann, wan24.de
+ * @copyright ©2011 Andreas Zimmermann, wan24.de
  * @version 2.3
  */
 class PhpWsdl{
@@ -62,7 +62,7 @@ class PhpWsdl{
      * 
      * $var ContainerInterface
      */
-    public $container;
+    public static $container;
     
 	/**
 	 * The version number 
@@ -443,7 +443,7 @@ class PhpWsdl{
 		$runServer=false                
 		){
 
-                $this->container = $container;
+                self::$container = $container;
                 
 		// Quick mode
 		self::Debug('PhpWsdl constructor called');
@@ -531,7 +531,8 @@ class PhpWsdl{
 	 * @param boolean|string|object|array $runServer Run SOAP server? (default: FALSE)
 	 * @return PhpWsdl The PhpWsdl object
 	 */
-	public static function CreateInstance(
+	public static function CreateInstance(ContainerInterface
+                $container,
 		$nameSpace=null,
 		$endPoint=null,
 		$cacheFolder=null,
@@ -560,7 +561,7 @@ class PhpWsdl{
 			)
 		);
 		if(is_null($obj))
-			$obj=new PhpWsdl($nameSpace,$endPoint,$cacheFolder,$file,$name,$methods,$types,$outputOnRequest,$runServer);
+			$obj=new PhpWsdl($container, $nameSpace,$endPoint,$cacheFolder,$file,$name,$methods,$types,$outputOnRequest,$runServer);
 		self::CallHook(
 			'CreateInstanceHook',
 			Array(
@@ -763,7 +764,7 @@ class PhpWsdl{
 	 * Determine the endpoint URI
 	 */
 	public function DetermineEndPoint(){
-            $request = $this->container->get('request');            
+            $request = self::$container->get('request');            
             return ((isset($_SERVER['HTTPS'])&&$_SERVER['HTTPS']=='on')?'https':'http').'://'.$_SERVER['SERVER_NAME']. ( !($request->server->get('SERVER_PORT')== '443' || $request->server->get('SERVER_PORT')== '80') ?  ':' . $request->server->get('SERVER_PORT') : '') .$_SERVER['PHP_SELF'];
 	}
 
@@ -2156,6 +2157,7 @@ class PhpWsdl{
 	 * @return boolean Writeable?
 	 */
 	public static function IsCacheFolderWriteAble($folder=null){
+            self::$container->get('logger')->warn('folder writable test: ' . $folder);
 		if(!is_null(self::$CacheFolderWriteAble))
 			return self::$CacheFolderWriteAble;
 		if(is_null($folder))
