@@ -53,7 +53,7 @@ PhpWsdl::PostInit();
  * PhpWsdl class
  * 
  * @author Andreas Zimmermann
- * @copyright ©2011 Andreas Zimmermann, wan24.de
+ * @copyright Â©2011 Andreas Zimmermann, wan24.de
  * @version 2.3
  */
 class PhpWsdl{
@@ -2157,7 +2157,6 @@ class PhpWsdl{
 	 * @return boolean Writeable?
 	 */
 	public static function IsCacheFolderWriteAble($folder=null){
-            self::$container->get('logger')->warn('folder writable test: ' . $folder);
 		if(!is_null(self::$CacheFolderWriteAble))
 			return self::$CacheFolderWriteAble;
 		if(is_null($folder))
